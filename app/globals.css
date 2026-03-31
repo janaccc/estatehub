@@ -1,43 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f1ea;
-  --foreground: #1f2933;
-  --card: #ffffff;
-  --card-strong: #fef7ec;
-  --accent: #0f6e68;
-  --accent-strong: #0b4f4b;
-  --muted: #5f6b73;
-  --muted-strong: #3a434a;
-  --outline: rgba(31, 41, 51, 0.12);
+  --background: #0b0f14;
+  --foreground: #e6eef6;
+  --card: #121823;
+  --card-strong: #0f1622;
+  --accent: #4fd1c5;
+  --accent-strong: #2bb3a9;
+  --muted: #9aa7b2;
+  --muted-strong: #c7d2dd;
+  --outline: rgba(148, 163, 184, 0.22);
+  --glow: rgba(79, 209, 197, 0.25);
+  --code: #0f1a25;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-fraunces);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
-  background: radial-gradient(circle at top left, #fff1d6 0%, #f6f1ea 45%, #e8efe9 100%);
+  background-color: #0b0f14;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 15% 20%, rgba(79, 209, 197, 0.12), transparent 55%),
+    radial-gradient(circle at 85% 0%, rgba(56, 189, 248, 0.15), transparent 45%),
+    linear-gradient(180deg, #0b0f14 0%, #0b121b 55%, #0a0f15 100%);
+  background-size: 120px 120px, 120px 120px, auto, auto, auto;
+  background-position: -1px -1px, -1px -1px, 0 0, 0 0, 0 0;
   color: var(--foreground);
   font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: -0.01em;
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(15, 22, 34, 0.85);
   border: 1px solid var(--outline);
-  box-shadow: 0 20px 50px rgba(31, 41, 51, 0.12);
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.65);
   backdrop-filter: blur(14px);
 }
 
 .gradient-divider {
-  background: linear-gradient(90deg, rgba(15, 110, 104, 0) 0%, rgba(15, 110, 104, 0.55) 50%, rgba(15, 110, 104, 0) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(79, 209, 197, 0) 0%,
+    rgba(79, 209, 197, 0.55) 50%,
+    rgba(79, 209, 197, 0) 100%
+  );
+}
+
+.terminal {
+  background: var(--code);
+  border: 1px solid rgba(79, 209, 197, 0.35);
+  box-shadow: 0 18px 45px rgba(2, 6, 23, 0.6);
+}
+
+.neon-outline {
+  box-shadow:
+    0 0 0 1px rgba(79, 209, 197, 0.35),
+    0 0 25px rgba(79, 209, 197, 0.2);
 }
 
 @keyframes fade-up {
