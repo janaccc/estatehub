@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<b>EstateHub</b>
 
-## Getting Started
+EstateHub je spletna aplikacija za oglaševanje in iskanje nepremičnin.  
+Omogoča lastnikom, da enostavno objavijo svoje nepremičnine, kupcem pa, da jih najdejo in pošljejo ponudbe.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Funkcionalnosti
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Za lastnike nepremičnin
+- **Registracija in prijava** – ustvarite svoj račun za dostop do vseh funkcionalnosti.  
+- **Objava nepremičnin** – dodajte slike, lokacijo in osnovne podatke o nepremičnini.  
+- **Urejanje nepremičnin** – posodabljajte ali brišite objave po potrebi.  
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Za kupce
+- **Registracija in prijava** – ustvarite račun za iskanje in komunikacijo z lastniki.  
+- **Pošiljanje ponudb** – kontaktirajte lastnike in pošljite ponudbo za izbrano nepremičnino.  
+- **Iskalni filtri** – filtrirajte nepremičnine po lokaciji, ceni, tipu in drugih kriterijih.  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
