@@ -1,5 +1,9 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabase } from "@/lib/supabase/supabaseClient";
+
 const blockNonNumericKeys = (
   event: React.KeyboardEvent<HTMLInputElement>
 ) => {
@@ -13,9 +17,7 @@ const blockNonNumericKeys = (
     "End",
   ];
 
-  if (allowedKeys.includes(event.key)) {
-    return;
-  }
+  if (allowedKeys.includes(event.key)) return;
 
   if (!/^\d$/.test(event.key)) {
     event.preventDefault();
@@ -29,6 +31,29 @@ const sanitizeNumericValue = (
 };
 
 export default function Home() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = getSupabase();
+      if (!supabase) return;
+
+      const { data } = await supabase.auth.getSession();
+
+      if (!data.session) {
+        router.push("/login");
+      } else {
+        setChecking(false);
+      }
+    };
+
+    checkUser();
+  }, [router]);
+
+  // 👉 prepreči render dokler ne preverimo auth
+  if (checking) return null;
+
   return (
     <div className="min-h-screen text-[var(--foreground)]">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8">
@@ -46,144 +71,86 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] md:inline-flex">
+          <button
+            onClick={() => router.push("/login")}
+            className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] md:inline-flex"
+          >
             Prijava
           </button>
-          <button className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
-            Ustvari racun
+          <button
+            onClick={() => router.push("/register")}
+            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
+          >
+            Ustvari račun
           </button>
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-4xl flex-col items-start gap-8 px-6 pb-16 pt-20">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--outline)] bg-[var(--card)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-          Nepremicnine brez posrednikov
+          Nepremičnine brez posrednikov
         </div>
-        <h1 className="font-display text-4xl font-semibold leading-tight text-[var(--foreground)] sm:text-5xl">
-          EstateHub poveze lastnike in kupce v eni pregledni platformi.
+
+        <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">
+          EstateHub poveže lastnike in kupce v eni pregledni platformi.
         </h1>
+
         <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">
           Objavite oglas v nekaj minutah, sprejemajte ponudbe ter vodite vsa
-          sporocila na enem mestu. Transparentno, hitro in brez nepotrebnih
-          posrednikov.
+          sporočila na enem mestu.
         </p>
+
+        {/* FILTER */}
         <div className="glass-panel terminal w-full max-w-3xl rounded-3xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
-                Iskalni filter
-              </p>
-              <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
-                Najdite pravo nepremicnino
-              </h2>
-            </div>
-            <span className="rounded-full border border-[var(--outline)] px-3 py-1 text-xs font-semibold text-[var(--accent)]">
-              Prijava
-            </span>
-          </div>
           <div className="mt-4 grid gap-3">
-            <label className="rounded-2xl border border-[var(--outline)] bg-[rgba(15,22,34,0.9)] px-4 py-3">
-              <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-                Lokacija
-              </span>
+            <label className="rounded-2xl border border-[var(--outline)] px-4 py-3">
+              <span className="text-xs text-[var(--muted)]">Lokacija</span>
               <input
                 type="text"
-                placeholder="Ljubljana, okolica"
-                className="mt-1 w-full bg-transparent text-sm font-semibold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                placeholder="Ljubljana"
+                className="mt-1 w-full bg-transparent outline-none"
               />
             </label>
+
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="relative rounded-2xl border border-[var(--outline)] bg-[rgba(15,22,34,0.9)] px-4 py-3">
-                <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Cena od
-                </span>
-                <span className="pointer-events-none absolute left-4 top-[2.1rem] text-sm font-semibold text-[var(--muted)]">
-                  €
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="200000"
-                  onKeyDown={blockNonNumericKeys}
-                  onChange={sanitizeNumericValue}
-                  className="mt-1 w-full bg-transparent pl-5 text-sm font-semibold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                />
-              </label>
-              <label className="relative rounded-2xl border border-[var(--outline)] bg-[rgba(15,22,34,0.9)] px-4 py-3">
-                <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Cena do
-                </span>
-                <span className="pointer-events-none absolute left-4 top-[2.1rem] text-sm font-semibold text-[var(--muted)]">
-                  €
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="450000"
-                  onKeyDown={blockNonNumericKeys}
-                  onChange={sanitizeNumericValue}
-                  className="mt-1 w-full bg-transparent pl-5 text-sm font-semibold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                />
-              </label>
+              <input
+                placeholder="Cena od"
+                onKeyDown={blockNonNumericKeys}
+                onChange={sanitizeNumericValue}
+                className="input"
+              />
+              <input
+                placeholder="Cena do"
+                onKeyDown={blockNonNumericKeys}
+                onChange={sanitizeNumericValue}
+                className="input"
+              />
             </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="relative rounded-2xl border border-[var(--outline)] bg-[rgba(15,22,34,0.9)] px-4 py-3">
-                <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Kvadratura od
-                </span>
-                <span className="pointer-events-none absolute right-4 top-[2.1rem] text-sm font-semibold text-[var(--muted)]">
-                  m2
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="60"
-                  onKeyDown={blockNonNumericKeys}
-                  onChange={sanitizeNumericValue}
-                  className="mt-1 w-full bg-transparent pr-9 text-sm font-semibold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                />
-              </label>
-              <label className="relative rounded-2xl border border-[var(--outline)] bg-[rgba(15,22,34,0.9)] px-4 py-3">
-                <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Kvadratura do
-                </span>
-                <span className="pointer-events-none absolute right-4 top-[2.1rem] text-sm font-semibold text-[var(--muted)]">
-                  m2
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="120"
-                  onKeyDown={blockNonNumericKeys}
-                  onChange={sanitizeNumericValue}
-                  className="mt-1 w-full bg-transparent pr-9 text-sm font-semibold text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                />
-              </label>
+              <input
+                placeholder="Kvadratura od"
+                onKeyDown={blockNonNumericKeys}
+                onChange={sanitizeNumericValue}
+                className="input"
+              />
+              <input
+                placeholder="Kvadratura do"
+                onKeyDown={blockNonNumericKeys}
+                onChange={sanitizeNumericValue}
+                className="input"
+              />
             </div>
           </div>
-          <a
-            href="/login"
-            className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-[#0b0f14] transition hover:bg-[var(--accent)]"
-            aria-label="Isci (prijava)"
-          >
+
+          <button className="mt-4 w-full rounded-2xl bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-black hover:bg-[var(--accent)]">
             Išči
-          </a>
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <button className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
-            Ustvari racun
-          </button>
-          <button className="rounded-full border border-[var(--outline)] px-6 py-3 text-sm font-semibold text-[var(--accent)] transition hover:bg-[rgba(79,209,197,0.1)]">
-            Prijava
           </button>
         </div>
       </main>
 
-      <footer className="border-t border-[var(--outline)] bg-[rgba(9,13,20,0.85)]">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-xs uppercase tracking-[0.3em] text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <span>© 2026 EstateHub</span>
-          <span>Vse pravice pridrzane</span>
-        </div>
+      <footer className="border-t border-[var(--outline)] p-6 text-xs text-[var(--muted)]">
+        © 2026 EstateHub
       </footer>
     </div>
   );
