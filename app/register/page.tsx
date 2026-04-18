@@ -43,15 +43,9 @@ export default function RegisterPage() {
       return;
     }
 
-    await supabase!.from("uporabniki").upsert({
-      auth_id: data.user?.id ?? null,
-      email,
-      name,
-      created_at: new Date().toISOString(),
-    });
-
-    setSuccess("Račun ustvarjen! Preveri email.");
+    setSuccess("Račun ustvarjen! Preveri email za potrditev.");
     setLoading(false);
+    router.push("/login");
   };
 
   return (

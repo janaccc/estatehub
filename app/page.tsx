@@ -32,6 +32,7 @@ const sanitizeNumericValue = (
 
 export default function Home() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -41,17 +42,32 @@ export default function Home() {
 
       const { data } = await supabase.auth.getSession();
 
-      if (!data.session) {
-        router.push("/login");
-      } else {
-        setChecking(false);
-      }
-    };
+      setIsLoggedIn(!!data.session);
+      setChecking(false);
+      if (data.session) {
+        router.push("/listings");
+      }    };
 
     checkUser();
-  }, [router]);
+  }, []);
 
-  // 👉 prepreči render dokler ne preverimo auth
+  const handleSearch = () => {
+    if (!isLoggedIn) {
+      router.push("/login");
+    } else {
+      router.push("/listings");
+    }
+  };
+
+  const handleLogout = async () => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    router.push('/');
+  };
+
   if (checking) return null;
 
   return (
@@ -71,18 +87,37 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/login")}
-            className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] md:inline-flex"
-          >
-            Prijava
-          </button>
-          <button
-            onClick={() => router.push("/register")}
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
-          >
-            Ustvari račun
-          </button>
+          {isLoggedIn ? (
+            <>
+              <button
+                onClick={() => router.push("/myaccount")}
+                className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer md:inline-flex"
+              >
+                Moj račun
+              </button>
+              <button
+                onClick={handleLogout}
+                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] cursor-pointer"
+              >
+                Odjava
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => router.push("/login")}
+                className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer md:inline-flex"
+              >
+                Prijava
+              </button>
+              <button
+                onClick={() => router.push("/register")}
+                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[#041014] shadow-lg shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] cursor-pointer"
+              >
+                Ustvari račun
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -143,7 +178,10 @@ export default function Home() {
             </div>
           </div>
 
-          <button className="mt-4 w-full rounded-2xl bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-black hover:bg-[var(--accent)]">
+          <button
+            onClick={handleSearch}
+            className="mt-4 w-full rounded-2xl bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-lg cursor-pointer"
+          >
             Išči
           </button>
         </div>
