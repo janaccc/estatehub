@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/supabaseClient";
+import { ensureProfile } from "@/lib/supabase/ensureProfile";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function LoginPage() {
       return;
     }
 
-    const { error } = await supabase!.auth.signInWithPassword({
+    const { data, error } = await supabase!.auth.signInWithPassword({
       email,
       password,
     });
@@ -33,6 +34,21 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    if (data.user) {
+      const metadata = data.user.user_metadata;
+      const { error: profileError } = await ensureProfile({
+        id: data.user.id,
+        email: data.user.email,
+        fullName: metadata?.name ?? metadata?.full_name ?? null,
+      });
+
+      if (profileError) {
+        setError(`Prijava je uspela, profil pa ne: ${profileError.message}`);
+        setLoading(false);
+        return;
+      }
     }
 
     router.push("/");

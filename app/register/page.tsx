@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/supabaseClient";
+import { ensureProfile } from "@/lib/supabase/ensureProfile";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,6 +40,24 @@ export default function RegisterPage() {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.user) {
+      setError("Registracija ni vrnila uporabnika.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: profileError } = await ensureProfile({
+      id: data.user.id,
+      email,
+      fullName: name,
+    });
+
+    if (profileError) {
+      setError(`Račun je ustvarjen, profil pa ne: ${profileError.message}`);
       setLoading(false);
       return;
     }

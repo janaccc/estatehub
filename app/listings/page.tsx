@@ -128,7 +128,7 @@ export default function ListingsPage() {
           {isAdmin && (
             <button
               onClick={() => router.push("/admin")}
-              className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer md:inline-flex"
+              className="hidden rounded-full bg-yellow-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-yellow-500 cursor-pointer md:inline-flex"
             >
               Admin
             </button>

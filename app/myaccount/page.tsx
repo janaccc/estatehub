@@ -30,6 +30,9 @@ export default function MyAccountPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"listings" | "offers">("listings");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [userCreatedAt, setUserCreatedAt] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     fetchUserData();
@@ -43,6 +46,13 @@ export default function MyAccountPage() {
     if (!session.session) return;
 
     const userId = session.session.user.id;
+    const userEmail = session.session.user.email || "";
+    const userCreatedAt = session.session.user.created_at || "";
+
+    setUserEmail(userEmail);
+    setUserCreatedAt(userCreatedAt);
+    // Extract username from email (before @)
+    setUsername(userEmail.split("@")[0]);
 
     // Check admin role
     const { data: profile } = await supabase
@@ -125,7 +135,7 @@ export default function MyAccountPage() {
           {isAdmin && (
             <button
               onClick={() => router.push("/admin")}
-              className="hidden rounded-full border border-[var(--outline)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer md:inline-flex"
+              className="hidden rounded-full bg-yellow-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-yellow-500 cursor-pointer md:inline-flex"
             >
               Admin
             </button>
@@ -157,6 +167,29 @@ export default function MyAccountPage() {
         <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">
           Ogledajte svoje objavljene oglase, urejajte jih, brišite ali ogledujte prejete ponudbe.
         </p>
+
+        {/* User Account Info */}
+        <div className="w-full glass-panel terminal rounded-3xl p-8">
+          <h2 className="text-2xl font-semibold mb-6">Podatki računa</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-[var(--muted)] text-sm mb-1">Uporabniško ime</p>
+              <p className="text-lg font-semibold">{username}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)] text-sm mb-1">Email</p>
+              <p className="text-lg font-semibold">{userEmail}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)] text-sm mb-1">Datum prijave</p>
+              <p className="text-lg font-semibold">{new Date(userCreatedAt).toLocaleString('sl-SI')}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)] text-sm mb-1">Število oglasov</p>
+              <p className="text-lg font-semibold">{listings.length}</p>
+            </div>
+          </div>
+        </div>
 
         {/* Tabs */}
         <div className="w-full glass-panel terminal rounded-3xl p-6">
