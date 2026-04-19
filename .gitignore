@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+supabase_profiles_setup.sql
+supabase_rls_setup.sql
+.vscode/extensions.json
