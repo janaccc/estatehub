@@ -135,10 +135,14 @@ export default function ListingDetailPage() {
   };
 
   const nextImage = () => {
+    if (!listing || listing.images.length === 0) return;
+
     setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
   };
 
   const prevImage = () => {
+    if (!listing || listing.images.length === 0) return;
+
     setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
   };
 
