@@ -66,23 +66,16 @@ export async function POST(
   }
 
   if (decision === "reject") {
-    const { error: statusError } = await supabase
+    const { error: deleteError } = await supabase
       .from("offers")
-      .update({ status: "rejected" })
+      .delete()
       .eq("id", offerId);
 
-    if (statusError) {
-      const { error: deleteError } = await supabase
-        .from("offers")
-        .delete()
-        .eq("id", offerId);
-
-      if (deleteError) {
-        return NextResponse.json(
-          { error: "Failed to reject offer." },
-          { status: 500 }
-        );
-      }
+    if (deleteError) {
+      return NextResponse.json(
+        { error: "Failed to reject offer." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true });
