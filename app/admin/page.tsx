@@ -25,6 +25,8 @@ interface User {
   listing_count?: number;
 }
 
+const DEFAULT_ADMIN_EMAIL = "jan.topler@scv.si";
+
 export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"listings" | "users">("listings");
@@ -35,6 +37,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [totalListings, setTotalListings] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalOffers, setTotalOffers] = useState(0);
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -48,16 +51,40 @@ export default function AdminPage() {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.session.user.id)
-        .single();
+      const sessionEmail = (session.session.user.email ?? "").trim().toLowerCase();
+      const isDefaultAdmin = sessionEmail === DEFAULT_ADMIN_EMAIL;
 
-      if (profile?.role !== 'admin') {
-        router.push('/listings');
-        return;
+      if (!isDefaultAdmin) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.session.user.id)
+          .single();
+
+        if (profileError || profile?.role !== 'admin') {
+          router.push('/listings');
+          return;
+        }
       }
+
+      const [usersCountRes, listingsCountRes, offersCountRes] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("listings").select("id", { count: "exact", head: true }),
+        supabase.from("offers").select("id", { count: "exact", head: true }),
+      ]);
+
+      const usersCount = usersCountRes.count;
+      const listingsCount = listingsCountRes.count;
+      const offersCount = offersCountRes.count;
+
+      const hasUsersCount = !usersCountRes.error && typeof usersCount === "number";
+      const hasListingsCount =
+        !listingsCountRes.error && typeof listingsCount === "number";
+      const hasOffersCount = !offersCountRes.error && typeof offersCount === "number";
+
+      if (hasUsersCount) setTotalUsers(usersCount);
+      if (hasListingsCount) setTotalListings(listingsCount);
+      if (hasOffersCount) setTotalOffers(offersCount);
 
       // Fetch all listings with user info
       const { data: listingsData, error: listingsError } = await supabase
@@ -80,7 +107,9 @@ export default function AdminPage() {
           user_email: listing.profiles?.email
         }));
         setListings(listingsWithEmail);
-        setTotalListings(listingsWithEmail.length);
+        if (!hasListingsCount) {
+          setTotalListings(listingsWithEmail.length);
+        }
       }
 
       // Fetch all users with listing count
@@ -109,7 +138,9 @@ export default function AdminPage() {
           })
         );
         setUsers(usersWithListings.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-        setTotalUsers(usersWithListings.length);
+        if (!hasUsersCount) {
+          setTotalUsers(usersWithListings.length);
+        }
       }
 
       setLoading(false);
@@ -203,7 +234,7 @@ export default function AdminPage() {
         </p>
 
         {/* Statistics */}
-        <div className="w-full grid grid-cols-2 md:grid-cols-2 gap-4">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-panel terminal rounded-3xl p-6">
             <p className="text-[var(--muted)] text-sm mb-2">Skupaj uporabnikov</p>
             <p className="text-3xl font-bold text-[var(--accent)]">{totalUsers}</p>
@@ -211,6 +242,10 @@ export default function AdminPage() {
           <div className="glass-panel terminal rounded-3xl p-6">
             <p className="text-[var(--muted)] text-sm mb-2">Skupaj nepremičnin</p>
             <p className="text-3xl font-bold text-[var(--accent)]">{totalListings}</p>
+          </div>
+          <div className="glass-panel terminal rounded-3xl p-6">
+            <p className="text-[var(--muted)] text-sm mb-2">Skupaj ponudb</p>
+            <p className="text-3xl font-bold text-[var(--accent)]">{totalOffers}</p>
           </div>
         </div>
 

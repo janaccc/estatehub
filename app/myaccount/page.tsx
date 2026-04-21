@@ -35,6 +35,7 @@ export default function MyAccountPage() {
   const [userCreatedAt, setUserCreatedAt] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [decidingOfferId, setDecidingOfferId] = useState<string | null>(null);
+  const defaultAdminEmail = "jan.topler@scv.si";
 
   useEffect(() => {
     fetchUserData();
@@ -50,6 +51,8 @@ export default function MyAccountPage() {
     const userId = session.session.user.id;
     const userEmail = session.session.user.email || "";
     const userCreatedAt = session.session.user.created_at || "";
+    const isDefaultAdmin =
+      userEmail.trim().toLowerCase() === defaultAdminEmail;
 
     setUserEmail(userEmail);
     setUserCreatedAt(userCreatedAt);
@@ -62,7 +65,7 @@ export default function MyAccountPage() {
       .select('role')
       .eq('id', userId)
       .single();
-    setIsAdmin(profile?.role === 'admin');
+    setIsAdmin(profile?.role === 'admin' || isDefaultAdmin);
 
     // Fetch user's listings
     const { data: listingsData, error: listingsError } = await supabase

@@ -8,6 +8,8 @@ interface EnsureProfileParams {
   fullName?: string | null;
 }
 
+const DEFAULT_ADMIN_EMAIL = "jan.topler@scv.si";
+
 export async function ensureProfile({
   id,
   email,
@@ -21,10 +23,13 @@ export async function ensureProfile({
     };
   }
 
+  const role =
+    (email ?? "").trim().toLowerCase() === DEFAULT_ADMIN_EMAIL ? "admin" : "user";
+
   const basePayload = {
     id,
     email: email ?? null,
-    role: "user",
+    role,
   };
 
   const tryUpsert = async (payload: Record<string, unknown>) => {
