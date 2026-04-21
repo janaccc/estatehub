@@ -23,6 +23,7 @@ interface Offer {
   offer_amount: number;
   message: string;
   created_at: string;
+  status?: string | null;
 }
 
 export default function ListingDetailPage() {
@@ -39,6 +40,7 @@ export default function ListingDetailPage() {
   const [offerMessage, setOfferMessage] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [decidingOfferId, setDecidingOfferId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchListing();
@@ -49,6 +51,12 @@ export default function ListingDetailPage() {
       checkAuth();
     }
   }, [listing]);
+
+  useEffect(() => {
+    if (isOwner) {
+      fetchOffers();
+    }
+  }, [isOwner]);
 
   const fetchListing = async () => {
     const supabase = getSupabase();
@@ -132,6 +140,30 @@ export default function ListingDetailPage() {
 
     await supabase.auth.signOut();
     router.push('/');
+  };
+
+  const handleOfferDecision = async (offerId: string, decision: "accept" | "reject") => {
+    if (decidingOfferId) return;
+
+    setDecidingOfferId(offerId);
+    try {
+      const res = await fetch(`/api/offers/${offerId}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        alert(payload?.error || "Napaka pri obdelavi ponudbe");
+        return;
+      }
+
+      await fetchListing();
+      await fetchOffers();
+    } finally {
+      setDecidingOfferId(null);
+    }
   };
 
   const nextImage = () => {
@@ -310,6 +342,42 @@ export default function ListingDetailPage() {
                       <p><strong>Znesek:</strong> {offer.offer_amount} €</p>
                       <p><strong>Sporočilo:</strong> {offer.message}</p>
                       <p className="text-sm text-[var(--muted)]">{new Date(offer.created_at).toLocaleString()}</p>
+                      <div className="mt-3 flex items-center gap-2">
+                        {(offer.status === "accepted" ||
+                          offer.status === "rejected" ||
+                          (!offer.status && listing.price === offer.offer_amount)) && (
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                              offer.status === "rejected"
+                                ? "bg-red-500/15 text-red-400"
+                                : "bg-green-500/15 text-green-400"
+                            }`}
+                          >
+                            {offer.status === "rejected" ? "Zavrnjeno" : "Sprejeto"}
+                          </span>
+                        )}
+
+                        {offer.status !== "accepted" &&
+                          offer.status !== "rejected" &&
+                          !(listing.price === offer.offer_amount) && (
+                            <>
+                              <button
+                                onClick={() => handleOfferDecision(offer.id, "accept")}
+                                disabled={!!decidingOfferId}
+                                className="rounded bg-green-600 px-3 py-1 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                              >
+                                Sprejmi
+                              </button>
+                              <button
+                                onClick={() => handleOfferDecision(offer.id, "reject")}
+                                disabled={!!decidingOfferId}
+                                className="rounded bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                              >
+                                Zavrni
+                              </button>
+                            </>
+                          )}
+                      </div>
                     </div>
                   ))}
                 </div>
