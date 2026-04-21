@@ -206,10 +206,7 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
-              <p className="mt-4 text-xs text-[var(--muted)]">
-                Opomba: “Ime” je izpeljano iz emaila (del pred @), ker stolpec
-                profila za ime ni nujno prisoten.
-              </p>
+
             </div>
           )}
         </div>
