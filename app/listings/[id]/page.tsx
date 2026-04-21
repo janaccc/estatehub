@@ -11,6 +11,8 @@ interface Listing {
   title: string;
   description: string;
   location: string;
+  contact_email?: string | null;
+  contact_phone?: string | null;
   price: number;
   area: number;
   images: string[];
@@ -281,6 +283,28 @@ export default function ListingDetailPage() {
           {/* Details */}
           <div className="bg-[var(--card)] p-6 rounded-lg shadow-md mb-6">
             <p className="text-[var(--muted)] mb-2"><strong>Lokacija:</strong> {listing.location}</p>
+            {(listing.contact_email || listing.contact_phone) && (
+              <p className="text-[var(--muted)] mb-2">
+                <strong>Kontakt:</strong>{" "}
+                {listing.contact_phone && (
+                  <a
+                    href={`tel:${listing.contact_phone}`}
+                    className="text-[var(--accent)] hover:underline"
+                  >
+                    {listing.contact_phone}
+                  </a>
+                )}
+                {listing.contact_phone && listing.contact_email && " • "}
+                {listing.contact_email && (
+                  <a
+                    href={`mailto:${listing.contact_email}`}
+                    className="text-[var(--accent)] hover:underline"
+                  >
+                    {listing.contact_email}
+                  </a>
+                )}
+              </p>
+            )}
             <p className="text-lg font-bold text-[var(--accent)] mb-2"><strong>Cena:</strong> {listing.price} €</p>
             <p className="text-sm text-[var(--muted)] mb-4"><strong>Kvadratura:</strong> {listing.area} m²</p>
             <p className="text-[var(--foreground)]">{listing.description}</p>

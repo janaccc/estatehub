@@ -5,16 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/supabaseClient";
 import Link from "next/link";
 
-interface Listing {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  price: number;
-  area: number;
-  images: string[];
-}
-
 export default function EditListingPage() {
   const params = useParams();
   const router = useRouter();
@@ -23,45 +13,54 @@ export default function EditListingPage() {
     title: "",
     description: "",
     location: "",
+    contact_email: "",
+    contact_phone: "",
     price: "",
     area: "",
   });
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [newImages, setNewImages] = useState<File[]>([null as any]);
+  const [newImages, setNewImages] = useState<(File | null)[]>([null]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([""]);
-  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalImage, setModalImage] = useState<string>("");
 
   useEffect(() => {
-    fetchListing();
-  }, [id]);
+    let cancelled = false;
 
-  const fetchListing = async () => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    const { data, error } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("id", id)
-      .single();
+    void (async () => {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-    if (error) {
-      console.error("Error fetching listing:", error);
-    } else {
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Error fetching listing:", error);
+        return;
+      }
+
       setFormData({
         title: data.title,
         description: data.description || "",
         location: data.location,
+        contact_email: data.contact_email || "",
+        contact_phone: data.contact_phone || "",
         price: data.price.toString(),
         area: data.area.toString(),
       });
       setExistingImages(data.images || []);
-    }
-    setLoading(false);
-  };
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -80,7 +79,7 @@ export default function EditListingPage() {
 
       // If this is the last input and a file was added, add a new input
       if (index === newImages.length - 1) {
-        setNewImages([...newImagesArray, null as any]);
+        setNewImages([...newImagesArray, null]);
         setNewImagePreviews([...newPreviews, ""]);
       }
     }
@@ -108,7 +107,7 @@ export default function EditListingPage() {
     if (!supabase) return [];
 
     const uploadedUrls: string[] = [...existingImages];
-    const validImages = newImages.filter(img => img !== null);
+    const validImages = newImages.filter((img): img is File => img !== null);
 
     for (const image of validImages) {
       const fileExt = image.name.split('.').pop();
@@ -143,6 +142,15 @@ export default function EditListingPage() {
     const supabase = getSupabase();
     if (!supabase) return;
 
+    const contactEmail = formData.contact_email.trim();
+    const contactPhone = formData.contact_phone.trim();
+
+    if (!contactEmail && !contactPhone) {
+      alert("Vnesite vsaj e-pošto ali telefonsko številko za kontakt.");
+      setUpdating(false);
+      return;
+    }
+
     const imageUrls = await uploadImages();
 
     const { error } = await supabase
@@ -151,6 +159,8 @@ export default function EditListingPage() {
         title: formData.title,
         description: formData.description,
         location: formData.location,
+        contact_email: contactEmail || null,
+        contact_phone: contactPhone || null,
         price: parseFloat(formData.price),
         area: parseFloat(formData.area),
         images: imageUrls,
@@ -255,6 +265,31 @@ export default function EditListingPage() {
               required
               className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Kontakt e-pošta</label>
+            <input
+              type="email"
+              name="contact_email"
+              value={formData.contact_email}
+              onChange={handleInputChange}
+              placeholder="npr. ime@domena.si"
+              className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Kontakt telefon</label>
+            <input
+              type="tel"
+              name="contact_phone"
+              value={formData.contact_phone}
+              onChange={handleInputChange}
+              placeholder="npr. +386 40 123 456"
+              className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
+            />
+            <p className="mt-2 text-xs text-[var(--muted)]">Izpolnite vsaj e-pošto ali telefonsko številko.</p>
           </div>
 
           <div className="mb-4">

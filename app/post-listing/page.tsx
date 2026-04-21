@@ -11,10 +11,12 @@ export default function PostListingPage() {
     title: "",
     description: "",
     location: "",
+    contact_email: "",
+    contact_phone: "",
     price: "",
     area: "",
   });
-  const [images, setImages] = useState<File[]>([null as any]);
+  const [images, setImages] = useState<(File | null)[]>([null]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([""]);
   const [uploading, setUploading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -37,7 +39,7 @@ export default function PostListingPage() {
 
       // If this is the last input and a file was added, add a new input
       if (index === images.length - 1) {
-        setImages([...newImages, null as any]); // Add placeholder
+        setImages([...newImages, null]); // Add placeholder
         setImagePreviews([...newPreviews, ""]);
       }
     }
@@ -65,7 +67,7 @@ export default function PostListingPage() {
     if (!supabase) return [];
 
     const uploadedUrls: string[] = [];
-    const validImages = images.filter(img => img !== null);
+    const validImages = images.filter((img): img is File => img !== null);
 
     for (const image of validImages) {
       const fileExt = image.name.split('.').pop();
@@ -100,6 +102,15 @@ export default function PostListingPage() {
     const supabase = getSupabase();
     if (!supabase) return;
 
+    const contactEmail = formData.contact_email.trim();
+    const contactPhone = formData.contact_phone.trim();
+
+    if (!contactEmail && !contactPhone) {
+      alert("Vnesite vsaj e-pošto ali telefonsko številko za kontakt.");
+      setUploading(false);
+      return;
+    }
+
     const { data: session } = await supabase.auth.getSession();
     if (!session.session) {
       alert("Morate biti prijavljeni");
@@ -115,6 +126,8 @@ export default function PostListingPage() {
         title: formData.title,
         description: formData.description,
         location: formData.location,
+        contact_email: contactEmail || null,
+        contact_phone: contactPhone || null,
         price: parseFloat(formData.price),
         area: parseFloat(formData.area),
         images: imageUrls,
@@ -122,7 +135,12 @@ export default function PostListingPage() {
 
     if (error) {
       console.error("Error posting listing:", error);
-      alert("Napaka pri objavi oglasa");
+      const message = (error as { message?: string } | null)?.message || "";
+      if (message.includes("contact_email") || message.includes("contact_phone")) {
+        alert('Kontaktna polja še niso dodana v bazo. Dodaj stolpca "contact_email" in "contact_phone" v tabelo "listings".');
+      } else {
+        alert("Napaka pri objavi oglasa");
+      }
     } else {
       alert("Oglas objavljen!");
       router.push("/myaccount");
@@ -218,6 +236,31 @@ export default function PostListingPage() {
               required
               className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Kontakt e-pošta</label>
+            <input
+              type="email"
+              name="contact_email"
+              value={formData.contact_email}
+              onChange={handleInputChange}
+              placeholder="npr. ime@domena.si"
+              className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Kontakt telefon</label>
+            <input
+              type="tel"
+              name="contact_phone"
+              value={formData.contact_phone}
+              onChange={handleInputChange}
+              placeholder="npr. +386 40 123 456"
+              className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
+            />
+            <p className="mt-2 text-xs text-[var(--muted)]">Izpolnite vsaj e-pošto ali telefonsko številko.</p>
           </div>
 
           <div className="mb-4">
