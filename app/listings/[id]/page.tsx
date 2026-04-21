@@ -144,7 +144,7 @@ export default function ListingDetailPage() {
     router.push('/');
   };
 
-  const handleOfferDecision = async (offerId: string, decision: "accept" | "reject") => {
+  const handleAcceptOffer = async (offerId: string) => {
     if (decidingOfferId) return;
 
     setDecidingOfferId(offerId);
@@ -152,7 +152,7 @@ export default function ListingDetailPage() {
       const res = await fetch(`/api/offers/${offerId}/decision`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decision }),
+        body: JSON.stringify({ decision: "accept" }),
       });
 
       if (!res.ok) {
@@ -368,36 +368,25 @@ export default function ListingDetailPage() {
                       <p className="text-sm text-[var(--muted)]">{new Date(offer.created_at).toLocaleString()}</p>
                       <div className="mt-3 flex items-center gap-2">
                         {(offer.status === "accepted" ||
-                          offer.status === "rejected" ||
                           (!offer.status && listing.price === offer.offer_amount)) && (
                           <span
                             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                              offer.status === "rejected"
-                                ? "bg-red-500/15 text-red-400"
-                                : "bg-green-500/15 text-green-400"
+                              "bg-green-500/15 text-green-400"
                             }`}
                           >
-                            {offer.status === "rejected" ? "Zavrnjeno" : "Sprejeto"}
+                            Sprejeto
                           </span>
                         )}
 
                         {offer.status !== "accepted" &&
-                          offer.status !== "rejected" &&
                           !(listing.price === offer.offer_amount) && (
                             <>
                               <button
-                                onClick={() => handleOfferDecision(offer.id, "accept")}
+                                onClick={() => handleAcceptOffer(offer.id)}
                                 disabled={!!decidingOfferId}
                                 className="rounded bg-green-600 px-3 py-1 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                               >
                                 Sprejmi
-                              </button>
-                              <button
-                                onClick={() => handleOfferDecision(offer.id, "reject")}
-                                disabled={!!decidingOfferId}
-                                className="rounded bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-                              >
-                                Zavrni
                               </button>
                             </>
                           )}
