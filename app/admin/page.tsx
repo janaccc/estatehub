@@ -33,85 +33,88 @@ export default function AdminPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [totalListings, setTotalListings] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
-    checkAdminAndFetchData();
-  }, []);
-
-  const checkAdminAndFetchData = async () => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    // Check if user is admin
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
-      router.push('/login');
-      return;
-    }
+    void (async () => {
+      // Check if user is admin
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        router.push('/login');
+        return;
+      }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.session.user.id)
-      .single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.session.user.id)
+        .single();
 
-    if (profile?.role !== 'admin') {
-      router.push('/listings');
-      return;
-    }
+      if (profile?.role !== 'admin') {
+        router.push('/listings');
+        return;
+      }
 
-    setUserRole(profile.role);
+      // Fetch all listings with user info
+      const { data: listingsData, error: listingsError } = await supabase
+        .from("listings")
+        .select(`
+          *,
+          profiles:user_id (
+            email
+          )
+        `)
+        .order("created_at", { ascending: false });
 
-    // Fetch all listings with user info
-    const { data: listingsData, error: listingsError } = await supabase
-      .from("listings")
-      .select(`
-        *,
-        profiles:user_id (
-          email
-        )
-      `)
-      .order("created_at", { ascending: false });
+      if (listingsError) {
+        console.error("Error fetching listings:", listingsError);
+      }
 
-    if (listingsData) {
-      const listingsWithEmail = listingsData.map(listing => ({
-        ...listing,
-        user_email: listing.profiles?.email
-      }));
-      setListings(listingsWithEmail);
-      setTotalListings(listingsWithEmail.length);
-    }
+      if (listingsData) {
+        const listingsWithEmail = listingsData.map(listing => ({
+          ...listing,
+          user_email: listing.profiles?.email
+        }));
+        setListings(listingsWithEmail);
+        setTotalListings(listingsWithEmail.length);
+      }
 
-    // Fetch all users with listing count
-    const { data: usersData } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, created_at');
+      // Fetch all users with listing count
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, email, created_at');
 
-    if (usersData) {
-      const usersWithListings = await Promise.all(
-        usersData.map(async (profile) => {
-          const { data: userListings } = await supabase
-            .from('listings')
-            .select('id')
-            .eq('user_id', profile.id);
-          
-          return {
-            id: profile.id,
-            email: profile.email || 'N/A',
-            created_at: profile.created_at,
-            listing_count: userListings?.length || 0
-          };
-        })
-      );
-      setUsers(usersWithListings.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-      setTotalUsers(usersWithListings.length);
-    }
+      if (usersError) {
+        console.error("Error fetching users:", usersError);
+      }
 
-    setLoading(false);
-  };
+      if (usersData) {
+        const usersWithListings = await Promise.all(
+          usersData.map(async (profile) => {
+            const { data: userListings } = await supabase
+              .from('listings')
+              .select('id')
+              .eq('user_id', profile.id);
+
+            return {
+              id: profile.id,
+              email: profile.email || 'N/A',
+              created_at: profile.created_at,
+              listing_count: userListings?.length || 0
+            };
+          })
+        );
+        setUsers(usersWithListings.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        setTotalUsers(usersWithListings.length);
+      }
+
+      setLoading(false);
+    })();
+  }, [router]);
 
   const deleteListing = async (id: string) => {
     const supabase = getSupabase();
