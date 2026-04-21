@@ -145,15 +145,12 @@ export default function MyAccountPage() {
 
   return (
     <div className="min-h-screen text-[var(--foreground)]">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8">
-        <Link href="/listings" className="flex items-center gap-3 cursor-pointer">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--card)] text-sm font-semibold text-[var(--accent)] shadow-[0_0_18px_var(--glow)]">
-            EH
-          </div>
-          <div>
-            <p className="font-display text-lg font-semibold tracking-tight">
-              EstateHub
-            </p>
+	      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8">
+	        <Link href="/listings" className="flex items-center gap-3 cursor-pointer">
+	          <div>
+	            <p className="font-display text-lg font-semibold tracking-tight">
+	              EstateHub
+	            </p>
             <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
               nepremicnine
             </p>
