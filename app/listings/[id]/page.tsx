@@ -115,12 +115,23 @@ export default function ListingDetailPage() {
     const { data: session } = await supabase.auth.getSession();
     if (!session.session) return;
 
+    if (!listing) return;
+    const amount = Number(offerAmount);
+    if (!Number.isFinite(amount)) {
+      alert("Vnesite veljaven znesek ponudbe.");
+      return;
+    }
+    if (amount >= listing.price) {
+      alert(`Ponudba mora biti manjša od trenutne cene (${listing.price} €).`);
+      return;
+    }
+
     const { error } = await supabase
       .from("offers")
       .insert({
         listing_id: id,
         user_id: session.session.user.id,
-        offer_amount: parseFloat(offerAmount),
+        offer_amount: amount,
         message: offerMessage,
       });
 
