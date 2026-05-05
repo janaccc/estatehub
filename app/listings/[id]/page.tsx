@@ -335,9 +335,11 @@ export default function ListingDetailPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">Znesek ponudbe (€)</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={offerAmount}
-                  onChange={(e) => setOfferAmount(e.target.value)}
+                  onChange={(e) => setOfferAmount(e.target.value.replace(/[^0-9]/g, ""))}
                   required
                   min="0"
                   className="w-full border p-2 rounded bg-[var(--card)] text-[var(--foreground)]"
